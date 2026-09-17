@@ -7,7 +7,7 @@ export async function GET(request: Request) {
 
   // Try to fetch real live data from the delhi_pm25_openmeteo_complete 2 backend
   try {
-    const response = await fetch("http://127.0.0.1:8000/api/forecast/demo", {
+    const response = await fetch(`${process.env.FORECAST_SERVICE_URL || "http://127.0.0.1:8000"}/api/forecast/demo`, {
       method: "GET",
       // Short timeout to not block UI if backend is offline
       signal: AbortSignal.timeout(8000)
