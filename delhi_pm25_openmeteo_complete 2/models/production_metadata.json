@@ -1,0 +1,35 @@
+{
+  "scope": "Production model trained on all usable cleaned CPCB rows; no untouched holdout remains in this fit. Use bundled holdout metrics from the evaluation model for performance claims.",
+  "rows": 771271,
+  "stations": 58,
+  "start": "2023-01-01 01:00:00",
+  "end": "2026-08-01 23:00:00",
+  "features": [
+    "AT",
+    "RH",
+    "wind_dir_sin",
+    "wind_dir_cos",
+    "SR",
+    "RF",
+    "BP",
+    "hour_sin",
+    "hour_cos",
+    "doy_sin",
+    "doy_cos",
+    "pm_lag_1",
+    "pm_lag_3",
+    "pm_lag_6",
+    "pm_lag_12",
+    "pm_lag_24"
+  ],
+  "hyperparameters": {
+    "objective": "reg:squarederror",
+    "max_depth": 6,
+    "learning_rate": 0.03,
+    "n_estimators": 600,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "tree_method": "hist",
+    "random_state": 42
+  }
+}

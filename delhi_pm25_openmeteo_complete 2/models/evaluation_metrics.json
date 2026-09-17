@@ -1,0 +1,144 @@
+{
+  "scope": "Actual one-hour-ahead CPCB prototype using CPCB meteorology + PM2.5 lags. This is NOT yet the full Open-Meteo/PBL coupled hybrid.",
+  "split": {
+    "cutoff": "2024-10-01",
+    "train_rows": 248009,
+    "test_rows": 523262,
+    "train_start": "2023-01-01 01:00:00",
+    "train_end": "2024-09-30 23:00:00",
+    "test_start": "2024-10-01 00:00:00",
+    "test_end": "2026-08-01 23:00:00",
+    "stations_train": 50,
+    "stations_test": 56
+  },
+  "persistence": {
+    "rmse": 29.10918581183989,
+    "mae": 15.240378357304753,
+    "r2": 0.899653332166867,
+    "within_10_pct": 57.81520538468301,
+    "within_25_pct": 83.69822383433156,
+    "within_50_pct": 94.63060570039484,
+    "bias": -0.07678772775397412
+  },
+  "xgboost": {
+    "rmse": 28.030666443876573,
+    "mae": 14.35508904154351,
+    "r2": 0.9069514336921886,
+    "within_10_pct": 58.60754268416204,
+    "within_25_pct": 85.65001853755862,
+    "within_50_pct": 95.46479583841364,
+    "bias": -0.25066479306345835
+  },
+  "improvement_vs_persistence": {
+    "rmse_pct": 3.7050825637474167,
+    "mae_pct": 5.808840797819968
+  },
+  "xgboost_by_pm25_band": {
+    "0-60": {
+      "n": 240199,
+      "rmse": 12.55673722112609,
+      "mae": 7.69289177667651,
+      "r2": 0.20210827260931918,
+      "within_10_pct": 75.685993696893,
+      "within_25_pct": 96.32471409123269,
+      "within_50_pct": 99.38759112236104,
+      "bias": 3.8977888618774705
+    },
+    "61-120": {
+      "n": 139254,
+      "rmse": 18.37564050456625,
+      "mae": 12.358312015706986,
+      "r2": -0.13850073114120143,
+      "within_10_pct": 55.42964654516208,
+      "within_25_pct": 88.33929366481394,
+      "within_50_pct": 98.07115055940943,
+      "bias": 1.28445407636269
+    },
+    "121-250": {
+      "n": 106896,
+      "rmse": 29.32561136470549,
+      "mae": 20.188590735310015,
+      "r2": 0.3308224176351533,
+      "within_10_pct": 37.976163747941925,
+      "within_25_pct": 72.59672953150726,
+      "within_50_pct": 92.22608890884598,
+      "bias": -1.3101053988178801
+    },
+    ">250": {
+      "n": 36913,
+      "rmse": 79.67254817799127,
+      "mae": 48.34675354247176,
+      "r2": 0.3529431157579347,
+      "within_10_pct": 19.21003440522309,
+      "within_25_pct": 43.84363232465527,
+      "within_50_pct": 69.48500528269173,
+      "bias": -29.968539241455634
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "pm_lag_1",
+      "importance": 0.7728472352027893
+    },
+    {
+      "feature": "pm_lag_3",
+      "importance": 0.10103678703308105
+    },
+    {
+      "feature": "pm_lag_24",
+      "importance": 0.02140563167631626
+    },
+    {
+      "feature": "doy_cos",
+      "importance": 0.019621364772319794
+    },
+    {
+      "feature": "hour_cos",
+      "importance": 0.012847807258367538
+    },
+    {
+      "feature": "doy_sin",
+      "importance": 0.011464484967291355
+    },
+    {
+      "feature": "hour_sin",
+      "importance": 0.010009913705289364
+    },
+    {
+      "feature": "pm_lag_6",
+      "importance": 0.008023659698665142
+    },
+    {
+      "feature": "RH",
+      "importance": 0.006939726881682873
+    },
+    {
+      "feature": "pm_lag_12",
+      "importance": 0.00676338467746973
+    },
+    {
+      "feature": "SR",
+      "importance": 0.006250674836337566
+    },
+    {
+      "feature": "wind_dir_cos",
+      "importance": 0.006009922828525305
+    },
+    {
+      "feature": "BP",
+      "importance": 0.004586468916386366
+    },
+    {
+      "feature": "wind_dir_sin",
+      "importance": 0.00456376513466239
+    },
+    {
+      "feature": "AT",
+      "importance": 0.004058977589011192
+    },
+    {
+      "feature": "RF",
+      "importance": 0.0035702285822480917
+    }
+  ]
+}

@@ -16,6 +16,7 @@ export default function HyperlocalScenarioSandbox() {
   const [trafficDensity, setTrafficDensity] = useState(0); // default 0
   const [industrialOutput, setIndustrialOutput] = useState(0); // default 0
   const [windSpeed, setWindSpeed] = useState(3.5); // default 3.5
+  const [precipitation, setPrecipitation] = useState(0); // default 0
 
   // Re-run CTA button states
   const [isTuning, setIsTuning] = useState(false);
@@ -48,6 +49,7 @@ export default function HyperlocalScenarioSandbox() {
     setTrafficDensity(0);
     setIndustrialOutput(0);
     setWindSpeed(3.5);
+    setPrecipitation(0);
   };
 
   // Dynamic prediction trajectory from FastAPI backend
@@ -102,8 +104,9 @@ export default function HyperlocalScenarioSandbox() {
       const trafficEffect = trafficDensity * 0.45 * timeMultiplier;
       const industrialEffect = industrialOutput * 0.65 * timeMultiplier;
       const windEffect = (3.5 - windSpeed) * 8.5 * timeMultiplier;
+      const rainWashoutEffect = -precipitation * 12 * timeMultiplier;
       
-      const totalDelta = trafficEffect + industrialEffect + windEffect;
+      const totalDelta = trafficEffect + industrialEffect + windEffect + rainWashoutEffect;
       
       // Clamped Y coordinate inside SVG viewBox (200px height)
       return Math.max(15, Math.min(190, baseY - totalDelta));
@@ -240,6 +243,32 @@ export default function HyperlocalScenarioSandbox() {
                       className="flex-1 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-primary"
                     />
                     <span className="text-white font-mono text-xs w-14 text-right font-bold">{windSpeed} m/s</span>
+                  </div>
+                </div>
+
+                {/* Slider 4: Precipitation (Rainfall) */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-slate-300">Extreme Precipitation (Rainfall Washout)</span>
+                    <span className={`px-2 py-0.5 font-mono text-[9px] rounded border uppercase tracking-wider font-bold ${
+                      precipitation > 5
+                        ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' 
+                        : 'bg-slate-800 text-slate-400 border-slate-700'
+                    }`}>
+                      {precipitation > 5 ? 'Aerosol Washout Active' : 'Dry Conditions'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-sm">
+                    <input
+                      type="range"
+                      min="0"
+                      max="50"
+                      step="1"
+                      value={precipitation}
+                      onChange={(e) => setPrecipitation(Number(e.target.value))}
+                      className="flex-1 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-primary"
+                    />
+                    <span className="text-white font-mono text-xs w-14 text-right font-bold">{precipitation} mm/h</span>
                   </div>
                 </div>
               </div>

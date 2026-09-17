@@ -1,1 +1,13 @@
 node_modules
+
+# Large data files and models exceeding GitHub limits
+*.csv
+*.xlsx
+*.tar.gz
+tmp/
+data/
+ml model1/data/
+vayusense_ml_project/data/
+node_modules/
+backend/.venv/
+.venv/

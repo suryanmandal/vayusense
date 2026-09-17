@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:seed": "node src/lib/seed.js"
+    "db:seed": "node src/lib/seed.js",
+    "db:ingest": "node src/lib/ingest.js",
+    "db:daemon": "node src/lib/daemon.js"
   },
   "dependencies": {
     "html2canvas": "^1.4.1",
@@ -16,7 +18,9 @@
     "next": "^14.2.3",
     "pg": "^8.22.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^6.0.1"
   },
   "devDependencies": {
     "@types/mapbox-gl": "^3.4.1",

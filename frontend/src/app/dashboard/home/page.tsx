@@ -3,6 +3,45 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useMunicipal } from "@/context/MunicipalContext";
 
+function add3DFeatures(map: any) {
+  const layers = map.getStyle().layers || [];
+  let labelLayerId;
+  for (let i = 0; i < layers.length; i++) {
+    if (layers[i].type === 'symbol' && layers[i].layout['text-field']) {
+      labelLayerId = layers[i].id;
+      break;
+    }
+  }
+  
+  if (!map.getLayer('3d-buildings') && map.getSource('composite')) {
+      map.addLayer(
+        {
+          'id': '3d-buildings',
+          'source': 'composite',
+          'source-layer': 'building',
+          'filter': ['==', 'extrude', 'true'],
+          'type': 'fill-extrusion',
+          'minzoom': 12,
+          'paint': {
+            'fill-extrusion-color': '#2a3b4c',
+            'fill-extrusion-height': [
+              'interpolate', ['linear'], ['zoom'],
+              12, 0,
+              15.05, ['get', 'height']
+            ],
+            'fill-extrusion-base': [
+              'interpolate', ['linear'], ['zoom'],
+              12, 0,
+              15.05, ['get', 'min_height']
+            ],
+            'fill-extrusion-opacity': 0.8
+          }
+        },
+        labelLayerId
+      );
+  }
+}
+
 interface LogMessage {
   time: string;
   sender: "SensorAgent" | "SourceAttributionAgent" | "ComplianceAgent" | "System";
@@ -14,6 +53,29 @@ export default function MainControlRoom() {
 
   // Map Style State
   const [activeStyle, setActiveStyle] = useState<"monochrome" | "satellite" | "hybrid">("monochrome");
+
+  // 3D View State
+  const [is3DMode, setIs3DMode] = useState(true);
+  const is3DModeRef = useRef(is3DMode);
+  const isFlyingRef = useRef(false);
+  
+  useEffect(() => {
+    is3DModeRef.current = is3DMode;
+    if (mapRef.current) {
+      const map = mapRef.current;
+      if (is3DMode) {
+        map.easeTo({ pitch: 60, duration: 1000 });
+        if (map.getLayer('3d-buildings')) {
+          map.setLayoutProperty('3d-buildings', 'visibility', 'visible');
+        }
+      } else {
+        map.easeTo({ pitch: 0, bearing: 0, duration: 1000 });
+        if (map.getLayer('3d-buildings')) {
+          map.setLayoutProperty('3d-buildings', 'visibility', 'none');
+        }
+      }
+    }
+  }, [is3DMode]);
 
   // Floating Control Panel Accordion / Hamburger Menu State (allows collapsing panel for big screen map view)
   const [isControlPanelOpen, setIsControlPanelOpen] = useState(true);
@@ -118,36 +180,41 @@ export default function MainControlRoom() {
 
     const [centerLon, centerLat] = corp.center;
 
-    // 1. Industrial Emissions & Power Generation (Yellow Triangle Polygon)
+        // 1. Industrial Emissions & Power Generation (Yellow Triangle MultiPolygon)
     const industrialPolygon = [
-      [centerLon - 0.04, centerLat + 0.02],
-      [centerLon - 0.01, centerLat + 0.06],
-      [centerLon - 0.05, centerLat + 0.06],
-      [centerLon - 0.04, centerLat + 0.02]
+      [ // Patch 1
+        [[centerLon - 0.02, centerLat + 0.01], [centerLon - 0.01, centerLat + 0.02], [centerLon - 0.025, centerLat + 0.02], [centerLon - 0.02, centerLat + 0.01]]
+      ],
+      [ // Patch 2
+        [[centerLon + 0.01, centerLat + 0.02], [centerLon + 0.02, centerLat + 0.03], [centerLon + 0.005, centerLat + 0.03], [centerLon + 0.01, centerLat + 0.02]]
+      ],
+      [ // Patch 3
+        [[centerLon - 0.01, centerLat - 0.02], [centerLon + 0.00, centerLat - 0.01], [centerLon - 0.015, centerLat - 0.01], [centerLon - 0.01, centerLat - 0.02]]
+      ]
     ];
 
-    // 2. Transportation & Vehicular Exhaust (Cyan Corridor Line / Polygon Buffer)
+        // 2. Transportation & Vehicular Exhaust (Cyan MultiLineString)
     const trafficCorridor = [
-      [centerLon - 0.06, centerLat - 0.03],
-      [centerLon - 0.02, centerLat - 0.01],
-      [centerLon + 0.02, centerLat + 0.03],
-      [centerLon + 0.05, centerLat + 0.05]
+      [[centerLon - 0.03, centerLat - 0.01], [centerLon - 0.01, centerLat + 0.00]],
+      [[centerLon + 0.01, centerLat + 0.01], [centerLon + 0.03, centerLat + 0.02]],
+      [[centerLon - 0.01, centerLat + 0.02], [centerLon + 0.01, centerLat + 0.03]]
     ];
 
-    // 3. Construction, Demolition & Road Dust (Purple Square Polygon)
+        // 3. Construction, Demolition & Road Dust (Purple Square MultiPolygon)
     const constructionSquare = [
-      [centerLon + 0.01, centerLat - 0.04],
-      [centerLon + 0.04, centerLat - 0.04],
-      [centerLon + 0.04, centerLat - 0.01],
-      [centerLon + 0.01, centerLat - 0.01],
-      [centerLon + 0.01, centerLat - 0.04]
+      [ // Patch 1
+        [[centerLon + 0.005, centerLat - 0.02], [centerLon + 0.015, centerLat - 0.02], [centerLon + 0.015, centerLat - 0.01], [centerLon + 0.005, centerLat - 0.01], [centerLon + 0.005, centerLat - 0.02]]
+      ],
+      [ // Patch 2
+        [[centerLon - 0.025, centerLat - 0.005], [centerLon - 0.015, centerLat - 0.005], [centerLon - 0.015, centerLat + 0.005], [centerLon - 0.025, centerLat + 0.005], [centerLon - 0.025, centerLat - 0.005]]
+      ]
     ];
 
     // Add Industrial Source
     if (map.getSource("factor-industrial")) {
       (map.getSource("factor-industrial") as any).setData({
         type: "Feature",
-        geometry: { type: "Polygon", coordinates: [industrialPolygon] },
+        geometry: { type: "MultiPolygon", coordinates: industrialPolygon },
         properties: { name: "Industrial & Power Emitter Zone" }
       });
     } else {
@@ -155,7 +222,7 @@ export default function MainControlRoom() {
         type: "geojson",
         data: {
           type: "Feature",
-          geometry: { type: "Polygon", coordinates: [industrialPolygon] },
+          geometry: { type: "MultiPolygon", coordinates: industrialPolygon },
           properties: { name: "Industrial & Power Emitter Zone" }
         }
       });
@@ -177,7 +244,7 @@ export default function MainControlRoom() {
     if (map.getSource("factor-traffic")) {
       (map.getSource("factor-traffic") as any).setData({
         type: "Feature",
-        geometry: { type: "LineString", coordinates: trafficCorridor },
+        geometry: { type: "MultiLineString", coordinates: trafficCorridor },
         properties: { name: "Heavy Diesel Traffic Corridor" }
       });
     } else {
@@ -185,7 +252,7 @@ export default function MainControlRoom() {
         type: "geojson",
         data: {
           type: "Feature",
-          geometry: { type: "LineString", coordinates: trafficCorridor },
+          geometry: { type: "MultiLineString", coordinates: trafficCorridor },
           properties: { name: "Heavy Diesel Traffic Corridor" }
         }
       });
@@ -201,7 +268,7 @@ export default function MainControlRoom() {
     if (map.getSource("factor-construction")) {
       (map.getSource("factor-construction") as any).setData({
         type: "Feature",
-        geometry: { type: "Polygon", coordinates: [constructionSquare] },
+        geometry: { type: "MultiPolygon", coordinates: constructionSquare },
         properties: { name: "Fugitive Dust Construction Zone" }
       });
     } else {
@@ -209,7 +276,7 @@ export default function MainControlRoom() {
         type: "geojson",
         data: {
           type: "Feature",
-          geometry: { type: "Polygon", coordinates: [constructionSquare] },
+          geometry: { type: "MultiPolygon", coordinates: constructionSquare },
           properties: { name: "Fugitive Dust Construction Zone" }
         }
       });
@@ -324,11 +391,26 @@ export default function MainControlRoom() {
           ? "mapbox://styles/mapbox/satellite-streets-v12"
           : "mapbox://styles/mapbox/dark-v11",
         center: activeCorp ? activeCorp.center : [72.8347, 18.9220],
-        zoom: 11.5,
+        zoom: 12.5,
+        pitch: 60,
+        bearing: -17.6,
+        antialias: true,
         attributionControl: false
       });
 
       mapInstance.on("load", () => {
+        add3DFeatures(mapInstance);
+        
+        // Start simple 3D rotation animation
+        function rotateCamera(timestamp: number) {
+          if (!mapInstance) return;
+          if (is3DModeRef.current && !isFlyingRef.current) {
+            mapInstance.rotateTo((timestamp / 200) % 360, { duration: 0 });
+          }
+          requestAnimationFrame(rotateCamera);
+        }
+        requestAnimationFrame(rotateCamera);
+
         if (activeCorpRef.current) {
           renderCorpBoundary(mapInstance, activeCorpRef.current);
         }
@@ -357,6 +439,7 @@ export default function MainControlRoom() {
 
     mapRef.current.setStyle(styleUrl);
     mapRef.current.once("style.load", () => {
+      add3DFeatures(mapRef.current);
       if (activeCorpRef.current) {
         renderCorpBoundary(mapRef.current, activeCorpRef.current);
       }
@@ -367,6 +450,18 @@ export default function MainControlRoom() {
   useEffect(() => {
     if (!mapRef.current || !activeCorp) return;
     const map = mapRef.current;
+
+    // Fly to new location
+    isFlyingRef.current = true;
+    map.flyTo({
+      center: activeCorp.center,
+      zoom: 10.5,
+      essential: true
+    });
+
+    map.once("moveend", () => {
+      isFlyingRef.current = false;
+    });
 
     if (map.isStyleLoaded() || map.loaded()) {
       renderCorpBoundary(map, activeCorp);
@@ -906,6 +1001,18 @@ export default function MainControlRoom() {
 
           {/* Floating Map Style Selector */}
           <div className="absolute bottom-16 right-4 glass-panel p-1.5 rounded-lg flex flex-col gap-1 border border-slate-800 z-30">
+            <button
+              onClick={() => setIs3DMode(!is3DMode)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-semibold transition-all ${
+                is3DMode
+                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+                  : "hover:bg-white/10 text-slate-400 hover:text-white"
+              }`}
+            >
+              <span className="material-symbols-outlined text-[16px]">view_in_ar</span>
+              <span>3D Cinematic View</span>
+            </button>
+            <div className="h-px bg-slate-800 my-1 mx-2"></div>
             <button
               onClick={() => setActiveStyle("monochrome")}
               className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-semibold transition-all ${

@@ -1,5 +1,5 @@
 ---
-name: AeroPulse AI Design System
+name: VayuSense SIH26082 Design Reference
 colors:
   surface: '#0e1511'
   surface-dim: '#0e1511'
@@ -110,7 +110,15 @@ spacing:
   gutter: 16px
 ---
 
-## Brand & Style
+## SIH26082 Scope (2026-09-14)
+
+Historical visual reference, not implementation evidence. The current [project design](../../../Design.md), [requirements](../../../Prd.md) and [priority phases](../../../Phases.md) take precedence over the legacy guidance below, including older branding, spacing and card conventions.
+
+Required validation view (Phases 5 and 7): display computed held-out metrics for pollutants and leads 1-24, 25-48 and 49-72 hours, baseline comparisons, counts and uncertainty. Remove fixed RMSE/convergence claims from the active implementation.
+
+All scientific values require source/run provenance. Distinguish observations, forecasts, archived replay and synthetic fixtures. No mockup completion closes a scientific acceptance gate.
+
+## Brand & Style (Legacy Reference)
 The design system is engineered for high-stakes urban monitoring and industrial AI oversight. It targets city administrators, environmental engineers, and emergency response teams who require immediate, unambiguous data interpretation.
 
 The aesthetic follows a **Modern Industrial** movement—merging the precision of developer tools with the scale of enterprise infrastructure. It prioritizes high information density and technical authority. The UI should evoke a sense of "Mission Control": calm under normal operations, but capable of projecting extreme urgency through high-contrast chromatic shifts during environmental crises.

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { validateBounds } from '@/lib/satelliteBounds.mjs';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,11 +41,9 @@ async function getCopernicusToken() {
 }
 
 /**
- * Perform STAC search for the latest Sentinel-5P scene over South Mumbai.
+ * Perform STAC search over the requested preview extent.
  */
-async function searchLatestSentinel5P(accessToken) {
-  // Bounding box of South Mumbai: [minLng, minLat, maxLng, maxLat]
-  const bbox = [72.75, 18.85, 72.95, 19.15];
+async function searchLatestSentinel5P(accessToken, bbox) {
   
   // Search window: last 5 days
   const toDate = new Date();
@@ -79,7 +78,7 @@ async function searchLatestSentinel5P(accessToken) {
 /**
  * Trigger Sentinel Hub Processing API to request a gas plume heatmap.
  */
-async function generatePlumeImage(accessToken, fromTime, toTime) {
+async function generatePlumeImage(accessToken, fromTime, toTime, bbox) {
   // Custom Evalscript to color-map Tropospheric NO2 column density values
   const evalscript = `
     //VERSION=3
@@ -106,7 +105,7 @@ async function generatePlumeImage(accessToken, fromTime, toTime) {
   const requestBody = {
     input: {
       bounds: {
-        bbox: [72.75, 18.85, 72.95, 19.15],
+        bbox,
         properties: {
           crs: "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
         }
@@ -158,11 +157,18 @@ async function generatePlumeImage(accessToken, fromTime, toTime) {
 }
 
 /**
- * POST /api/geospatial/satellite/sync
+ * POST /api/geospatial/satellite
  * Connects to Copernicus Data Space Ecosystem, executes query syncs,
  * renders raw Sentinel-5P files, and feeds results down to GIS dashboards.
  */
 export async function POST(request) {
+  let bounds;
+  try {
+    const body = await request.json();
+    bounds = validateBounds(body?.bounds);
+  } catch {
+    return NextResponse.json({ status: 'error', message: 'Provide valid WGS84 bounds [west, south, east, north].' }, { status: 400 });
+  }
   try {
     console.log("Starting Copernicus Sentinel-5P Ingestion Sync...");
     
@@ -171,11 +177,11 @@ export async function POST(request) {
     console.log("Token exchange completed successfully.");
 
     // 2. STAC Search latest scene
-    const scene = await searchLatestSentinel5P(token);
+    const scene = await searchLatestSentinel5P(token, bounds);
     if (!scene) {
       return NextResponse.json({
         status: 'error',
-        message: 'No recent Sentinel-5P gas column scenes found over the Mumbai Region coordinates in the last 5 days.'
+        message: 'No recent Sentinel-5P gas column scenes found over the requested extent in the last 5 days.'
       }, { status: 404 });
     }
 
@@ -193,7 +199,7 @@ export async function POST(request) {
 
     // 3. Process the plume image
     console.log("Calling Processing API for NO2 raster creation...");
-    const base64Plume = await generatePlumeImage(token, fromTime, toTime);
+    const base64Plume = await generatePlumeImage(token, fromTime, toTime, bounds);
     console.log("Plume image generated successfully.");
 
     return NextResponse.json({
@@ -205,7 +211,11 @@ export async function POST(request) {
           platform,
           datetime: datetimeStr,
           cloudCover,
-          bounds: [72.75, 18.85, 72.95, 19.15]
+          bounds,
+          product: 'NO2 column imagery',
+          extentType: 'preview',
+          source: 'Copernicus Data Space',
+          retrievedAt: new Date().toISOString()
         }
       }
     }, { status: 200 });

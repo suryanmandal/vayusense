@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Delhi PM2.5 XGBoost + Live Open-Meteo</title>
+<style>
+body{font-family:system-ui,Arial,sans-serif;background:#0b1220;color:#e8eef9;margin:0}.wrap{max-width:1180px;margin:auto;padding:28px}.card{background:#121c2f;border:1px solid #263552;border-radius:14px;padding:18px;margin:14px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.metric{font-size:28px;font-weight:700}button{background:#4f8cff;color:white;border:0;border-radius:8px;padding:10px 16px;cursor:pointer;margin-right:8px}button.secondary{background:#334766}input,textarea{width:100%;box-sizing:border-box;background:#0c1526;color:#fff;border:1px solid #334766;border-radius:8px;padding:9px}.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:12px}label{font-size:13px;color:#b7c4da}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:7px;border-bottom:1px solid #263552;text-align:right}th:first-child,td:first-child{text-align:left}.warn{color:#ffd479}.ok{color:#74e0a3}.muted{color:#9fb0c9}canvas{width:100%;height:320px;background:#0c1526;border-radius:10px}.badge{display:inline-block;padding:3px 8px;border-radius:999px;background:#213252;font-size:12px}.status{margin-left:6px}
+</style></head>
+<body><div class="wrap">
+<h1>Delhi PM2.5 XGBoost + Live Open-Meteo</h1>
+<p>Bundled trained XGBoost model with offline CSV mode and internet-enabled live 72-hour weather ingestion.</p>
+<div id="metrics" class="grid"></div>
+
+<div class="card">
+<h2>Live forecast</h2>
+<p class="muted">Fully automatic mode fetches 72-hour weather from Open-Meteo and uses Open-Meteo/CAMS PM2.5 for the 24-hour lag seed. For better deployment fidelity, use the terminal <code>live</code> command with recent CPCB PM2.5 history.</p>
+<div class="formgrid">
+<div><label>Latitude</label><input id="lat" type="number" step="0.0001" value="28.6139"></div>
+<div><label>Longitude</label><input id="lon" type="number" step="0.0001" value="77.2090"></div>
+<div><label>Timezone</label><input id="tz" value="Asia/Kolkata"></div>
+</div>
+<button onclick="runLiveAuto()">Run Live Open-Meteo 72h</button>
+<span id="liveStatus" class="status"></span>
+<div id="liveMeta" class="muted" style="margin-top:10px"></div>
+</div>
+
+<div class="card"><h2>Offline demo</h2><p>Uses bundled 24-hour PM history and local 72-hour weather CSV.</p><button class="secondary" onclick="runDemo()">Run Offline Demo</button> <span id="offlineStatus" class="status"></span></div>
+<div class="card"><canvas id="chart" width="1100" height="320"></canvas></div>
+<div class="card"><h2>Forecast table</h2><div style="overflow:auto;max-height:440px"><table><thead><tr><th>Time</th><th>Persistence</th><th>XGBoost</th><th>Coupled*</th><th>PBL m</th><th>Inv.</th><th>Wind km/h</th></tr></thead><tbody id="rows"></tbody></table></div></div>
+<div class="card"><p class="warn">* The coupled series is experimental. The validated metrics shown above are for the standalone one-hour-ahead XGBoost evaluation model, not the recursive 72-hour live series.</p></div>
+<script src="/static/app.js"></script></div></body></html>

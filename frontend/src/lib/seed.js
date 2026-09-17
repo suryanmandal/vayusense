@@ -1,11 +1,6 @@
 import pool from './db.js';
 import crypto from 'crypto';
 
-/**
- * Migration & Database Seeding Script.
- * Configures the database with PostGIS geometry fields and populates 
- * facilities with geospatial points and corresponding telemetry records.
- */
 async function seedDatabase() {
   let client;
   try {
@@ -73,21 +68,20 @@ async function seedDatabase() {
       CREATE INDEX IF NOT EXISTS idx_audit_ledger_timestamp ON audit_ledger(timestamp DESC);
     `);
 
-    console.log("Seeding mock spatial facilities in South Mumbai MMR...");
+    console.log("Seeding mock spatial facilities in Delhi NCR...");
     
-    // Insert mock facilities representing key emission centers in South Mumbai
+    // Insert mock facilities representing key emission centers in Delhi NCR
     await client.query(`
       INSERT INTO facilities (industry_id, name, cluster_category, geom)
       VALUES 
-        ('IND_88', 'Worli Industrial Refinery Stack', 'Industrial', ST_SetSRID(ST_Point(72.8347, 18.9220), 4326)),
-        ('IND_42', 'Wadala Chemical Storage Plant', 'Chemicals', ST_SetSRID(ST_Point(72.8580, 19.0180), 4326)),
-        ('IND_101', 'Mazgaon Dock Shipbuilders', 'Logistics/Marine', ST_SetSRID(ST_Point(72.8465, 18.9630), 4326))
+        ('IND_88', 'Okhla Waste to Energy Plant', 'Industrial', ST_SetSRID(ST_Point(77.2796, 28.5355), 4326)),
+        ('IND_42', 'Bawana Industrial Area Sector 2', 'Industrial', ST_SetSRID(ST_Point(77.0602, 28.8055), 4326)),
+        ('IND_101', 'Ghazipur Landfill Phase 3', 'Waste Management', ST_SetSRID(ST_Point(77.3276, 28.6253), 4326))
       ON CONFLICT (industry_id) DO NOTHING;
     `);
 
     console.log("Seeding initial telemetry logs for facilities...");
 
-    // Fetch primary IDs
     const facilitiesRes = await client.query(`SELECT id, industry_id FROM facilities;`);
     const facilitiesMap = {};
     facilitiesRes.rows.forEach(row => {
@@ -97,27 +91,21 @@ async function seedDatabase() {
     if (facilitiesMap['IND_88']) {
       await client.query(`
         INSERT INTO telemetry_logs (facility_id, aqi_value, pm25, pm10)
-        VALUES 
-          (${facilitiesMap['IND_88']}, 412, 168.45, 250.12)
-        ON CONFLICT DO NOTHING;
+        VALUES (${facilitiesMap['IND_88']}, 412, 168.45, 250.12)
       `);
     }
 
     if (facilitiesMap['IND_42']) {
       await client.query(`
         INSERT INTO telemetry_logs (facility_id, aqi_value, pm25, pm10)
-        VALUES 
-          (${facilitiesMap['IND_42']}, 180, 95.20, 142.10)
-        ON CONFLICT DO NOTHING;
+        VALUES (${facilitiesMap['IND_42']}, 180, 95.20, 142.10)
       `);
     }
 
     if (facilitiesMap['IND_101']) {
       await client.query(`
         INSERT INTO telemetry_logs (facility_id, aqi_value, pm25, pm10)
-        VALUES 
-          (${facilitiesMap['IND_101']}, 95, 34.15, 55.40)
-        ON CONFLICT DO NOTHING;
+        VALUES (${facilitiesMap['IND_101']}, 95, 34.15, 55.40)
       `);
     }
 
@@ -140,7 +128,7 @@ async function seedDatabase() {
         timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
         target_endpoint: "/api/telemetry/stream",
         triggering_agent: "SourceAttributionAgent",
-        action_payload: { breach_detected: true, location: "Worli Naka", primary_source: "IND_88", pm25: 168.45 }
+        action_payload: { breach_detected: true, location: "Okhla Phase 1", primary_source: "IND_88", pm25: 168.45 }
       }
     ];
 
@@ -159,7 +147,6 @@ async function seedDatabase() {
     console.error("Database seeding execution failed:", error);
   } finally {
     if (client) client.release();
-    // Close the seed process's pool connection
     await pool.end();
   }
 }

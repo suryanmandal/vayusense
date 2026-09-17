@@ -2,11 +2,6 @@ import pool from '@/lib/db.js';
 
 export const dynamic = 'force-dynamic';
 
-/**
- * Helper to format a cell value according to RFC-4180 specifications.
- * Encloses the string in double quotes if it contains commas, double quotes,
- * or line endings, and escapes any embedded double quotes by doubling them.
- */
 function escapeCSVValue(value) {
   if (value === null || value === undefined) {
     return '';
@@ -18,12 +13,6 @@ function escapeCSVValue(value) {
   return strVal;
 }
 
-/**
- * Next.js App Router GET Route Handler.
- * Retrieves all rows from the audit_ledger table ordered chronologically,
- * formats them into an RFC-4180 compliant CSV format, and triggers
- * a secure file download attachment on the client.
- */
 export async function GET() {
   try {
     const sqlQuery = `
@@ -39,7 +28,6 @@ export async function GET() {
 
     const result = await pool.query(sqlQuery);
 
-    // CSV Header row aligned with frontend mapping
     const headers = [
       "Timestamp", 
       "Target Endpoint", 
@@ -51,9 +39,7 @@ export async function GET() {
     let csvRows = [];
     csvRows.push(headers.map(escapeCSVValue).join(','));
 
-    // Populate data rows
     result.rows.forEach((row) => {
-      // Ensure ISO format timestamp representation
       const formattedTimestamp = row.timestamp instanceof Date 
         ? row.timestamp.toISOString() 
         : new Date(row.timestamp).toISOString();
@@ -68,7 +54,6 @@ export async function GET() {
       csvRows.push(lineValues.map(escapeCSVValue).join(','));
     });
 
-    // Join with CRLF line endings as required by RFC-4180 specifications
     const csvContent = csvRows.join('\r\n') + '\r\n';
 
     return new Response(csvContent, {

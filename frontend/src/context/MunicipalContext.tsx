@@ -23,8 +23,8 @@ interface MunicipalContextType {
 const MunicipalContext = createContext<MunicipalContextType | undefined>(undefined);
 
 export function MunicipalProvider({ children }: { children: React.ReactNode }) {
-  const [selectedState, setSelectedStateState] = useState<string>("MH");
-  const [selectedCorpId, setSelectedCorpIdState] = useState<string>("AUTO_HIGHEST");
+  const [selectedState, setSelectedStateState] = useState<string>("NCR");
+  const [selectedCorpId, setSelectedCorpIdState] = useState<string>("NCR-01");
 
   const availableStates = STATES_LIST;
 

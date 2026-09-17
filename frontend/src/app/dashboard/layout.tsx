@@ -15,7 +15,9 @@ interface SubOption {
 
 const SUB_OPTIONS: Record<string, SubOption[]> = {
   overview: [
-    { name: "Main Control Room", route: "/dashboard/home", icon: "space_dashboard" }
+    { name: "Main Control Room", route: "/dashboard/home", icon: "space_dashboard" },
+    { name: "Forecast Workspace Overview", route: "/dashboard/home/overview", icon: "visibility" },
+    { name: "72-Hour Forecast Comparison", route: "/dashboard/forecast", icon: "cyclone" }
   ],
   geospatial: [
     { name: "Dynamic Vector Layer Engine", route: "/dashboard/geospatial/vector", icon: "layers" },
@@ -23,7 +25,8 @@ const SUB_OPTIONS: Record<string, SubOption[]> = {
   ],
   mlops: [
     { name: "Model Validation Analytics Terminal", route: "/dashboard/ml-ops/validation", icon: "analytics" },
-    { name: "Hyperlocal Scenario Sandbox", route: "/dashboard/ml-ops/sandbox", icon: "science" }
+    { name: "Hyperlocal Scenario Sandbox", route: "/dashboard/ml-ops/sandbox", icon: "science" },
+    { name: "Long-Term Prediction Engine 2.0", route: "/dashboard/ml-ops/sandbox-advanced", icon: "timeline" }
   ],
   "agent-logs": [
     { name: "Multi-Agent Network Topology Map", route: "/dashboard/agent-logs/topology", icon: "hub" },
@@ -139,11 +142,14 @@ function SystemSearchBar() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const systemPages = useMemo(() => [
+    { name: "72-Hour Coupled Air Quality Forecast", route: "/dashboard/forecast", icon: "cyclone", category: "Forecast" },
     { name: "Main Control Room Overview", route: "/dashboard/home", icon: "space_dashboard", category: "Dashboard" },
+    { name: "Forecast Workspace Overview", route: "/dashboard/home/overview", icon: "visibility", category: "Dashboard" },
     { name: "Dynamic Vector Layer Engine", route: "/dashboard/geospatial/vector", icon: "layers", category: "Geospatial" },
     { name: "Satellite Ingestion Pipeline Sync", route: "/dashboard/geospatial/satellite", icon: "satellite", category: "Geospatial" },
     { name: "Model Validation Analytics Terminal", route: "/dashboard/ml-ops/validation", icon: "analytics", category: "MLOps" },
     { name: "Hyperlocal Scenario Sandbox", route: "/dashboard/ml-ops/sandbox", icon: "science", category: "MLOps" },
+    { name: "Long-Term Prediction Engine 2.0", route: "/dashboard/ml-ops/sandbox-advanced", icon: "timeline", category: "MLOps" },
     { name: "Multi-Agent Network Topology Map", route: "/dashboard/agent-logs/topology", icon: "hub", category: "Agentic Operations" },
     { name: "Regional Language Translation Hub", route: "/dashboard/agent-logs/translation", icon: "translate", category: "Agentic Operations" },
     { name: "Immutable API System Log Exporter", route: "/dashboard/agent-logs/exporter", icon: "verified_user", category: "Agentic Operations" },
@@ -371,7 +377,7 @@ export default function DashboardLayout({
 
   return (
     <MunicipalProvider>
-      <div className="bg-[#0f172a] h-screen w-screen flex flex-col overflow-hidden text-on-surface font-body-md relative">
+      <div className={`${pathname === "/dashboard/forecast" ? "forecast-shell" : ""} bg-[#0f172a] h-screen w-screen flex flex-col overflow-hidden text-on-surface font-body-md relative`}>
         
         {/* TopNavBar */}
         <header className="fixed top-0 w-full z-50 h-16 bg-slate-900 border-b border-[#3c4a42]/30 flex justify-between items-center px-md shrink-0">

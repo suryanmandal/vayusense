@@ -3,6 +3,29 @@
 import React, { useState, useEffect } from "react";
 import { useMunicipal } from "@/context/MunicipalContext";
 
+function add3DFeatures(map: any) {
+  const layers = map.getStyle().layers || [];
+  let labelLayerId;
+  for (let i = 0; i < layers.length; i++) {
+    if (layers[i].type === 'symbol' && layers[i].layout['text-field']) {
+      labelLayerId = layers[i].id;
+      break;
+    }
+  }
+  if (!map.getLayer('3d-buildings') && map.getSource('composite')) {
+      map.addLayer({
+          'id': '3d-buildings', 'source': 'composite', 'source-layer': 'building',
+          'filter': ['==', 'extrude', 'true'], 'type': 'fill-extrusion', 'minzoom': 12,
+          'paint': {
+            'fill-extrusion-color': '#2a3b4c',
+            'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'], 12, 0, 15.05, ['get', 'height']],
+            'fill-extrusion-base': ['interpolate', ['linear'], ['zoom'], 12, 0, 15.05, ['get', 'min_height']],
+            'fill-extrusion-opacity': 0.8
+          }
+        }, labelLayerId);
+  }
+}
+
 export default function GeospatialDataControls() {
   const { activeCorp } = useMunicipal();
 
@@ -20,6 +43,22 @@ export default function GeospatialDataControls() {
 
   // Active Map style
   const [activeStyle, setActiveStyle] = useState<"monochrome" | "satellite" | "hybrid">("monochrome");
+
+  const [is3DMode, setIs3DMode] = useState(true);
+  const is3DModeRef = React.useRef(is3DMode);
+  useEffect(() => {
+    is3DModeRef.current = is3DMode;
+    if (mapRef.current) {
+      const map = mapRef.current;
+      if (is3DMode) {
+        map.easeTo({ pitch: 60, duration: 1000 });
+        if (map.getLayer('3d-buildings')) map.setLayoutProperty('3d-buildings', 'visibility', 'visible');
+      } else {
+        map.easeTo({ pitch: 0, bearing: 0, duration: 1000 });
+        if (map.getLayer('3d-buildings')) map.setLayoutProperty('3d-buildings', 'visibility', 'none');
+      }
+    }
+  }, [is3DMode]);
 
   // Map refs
   const mapContainerRef = React.useRef<HTMLDivElement>(null);
@@ -114,6 +153,9 @@ export default function GeospatialDataControls() {
           : "mapbox://styles/mapbox/dark-v11",
         center: [72.8347, 18.9220],
         zoom: 11.5,
+        pitch: 60,
+        bearing: -17.6,
+        antialias: true,
         attributionControl: false
       });
 
@@ -249,6 +291,9 @@ export default function GeospatialDataControls() {
     map.flyTo({
       center: corp.center,
       zoom: 11.2,
+        pitch: 60,
+        bearing: -17.6,
+        antialias: true,
       speed: 1.4,
       essential: true
     });
@@ -321,6 +366,13 @@ export default function GeospatialDataControls() {
   useEffect(() => {
     if (!mapRef.current || !activeCorp) return;
     const map = mapRef.current;
+
+    // Fly to new location
+    map.flyTo({
+      center: activeCorp.center,
+      zoom: 11.2,
+      essential: true
+    });
 
     if (map.isStyleLoaded() || map.loaded()) {
       renderCorpBoundary(map, activeCorp);
@@ -555,6 +607,18 @@ export default function GeospatialDataControls() {
         {/* Floating Style selectors */}
         <div className="absolute bottom-6 right-6 flex flex-col gap-1 z-30 text-left">
           <div className="bg-slate-900/90 backdrop-blur-md border border-slate-800 p-1.5 flex flex-col min-w-[180px] rounded-lg shadow-xl">
+            <button
+              onClick={() => setIs3DMode(!is3DMode)}
+              className={`text-left px-3 py-2 text-xs font-semibold rounded mb-1 flex items-center justify-between ${
+                is3DMode
+                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+                  : "text-slate-400 hover:bg-slate-800 transition-all hover:text-white"
+              }`}
+            >
+              <span>3D Cinematic View</span>
+              <span className="material-symbols-outlined text-[16px]">view_in_ar</span>
+            </button>
+            <div className="h-px bg-slate-800 my-1 mx-2"></div>
             <button
               onClick={() => handleStyleChange("monochrome")}
               className={`text-left px-3 py-2 text-xs font-semibold rounded ${

@@ -3,57 +3,25 @@ import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
-/**
- * Next.js App Router POST Route Handler.
- * Receives audit details, hashes them dynamically with SHA-256, and
- * logs the cryptographically sealed entry into the PostgreSQL audit ledger.
- */
 export async function POST(request) {
   try {
     const body = await request.json();
     const { target_endpoint, triggering_agent, action_payload } = body;
 
-    // Validate request body parameters
     if (!target_endpoint || typeof target_endpoint !== 'string') {
-      return new Response(JSON.stringify({ 
-        error: "Missing or invalid 'target_endpoint' field" 
-      }), { 
-        status: 400, 
-        headers: { 'Content-Type': 'application/json' } 
-      });
+      return new Response(JSON.stringify({ error: "Missing or invalid 'target_endpoint' field" }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
-
     if (!triggering_agent || typeof triggering_agent !== 'string') {
-      return new Response(JSON.stringify({ 
-        error: "Missing or invalid 'triggering_agent' field" 
-      }), { 
-        status: 400, 
-        headers: { 'Content-Type': 'application/json' } 
-      });
+      return new Response(JSON.stringify({ error: "Missing or invalid 'triggering_agent' field" }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
-
     if (action_payload === undefined || action_payload === null) {
-      return new Response(JSON.stringify({ 
-        error: "Missing or invalid 'action_payload' field" 
-      }), { 
-        status: 400, 
-        headers: { 'Content-Type': 'application/json' } 
-      });
+      return new Response(JSON.stringify({ error: "Missing or invalid 'action_payload' field" }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
 
-    // Capture the timestamp for matching hash verification and DB insertion
     const timestamp = new Date().toISOString();
-
-    // Construct the signature source string as required by specifications
     const signatureSource = `${timestamp}_${target_endpoint}_${triggering_agent}_${JSON.stringify(action_payload)}`;
+    const crypto_hash = crypto.createHash('sha256').update(signatureSource).digest('hex');
 
-    // Calculate SHA-256 hash signature
-    const crypto_hash = crypto
-      .createHash('sha256')
-      .update(signatureSource)
-      .digest('hex');
-
-    // Execute database insert transaction
     const sqlQuery = `
       INSERT INTO audit_ledger (
         timestamp, 
