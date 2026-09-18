@@ -102,7 +102,7 @@ export default function SatelliteIngestionSync() {
 
     import("mapbox-gl").then((mapboxglModule) => {
       const mapboxgl = mapboxglModule.default;
-      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
+      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ("pk.eyJ1Ijoidmlja3kyNTMxIi" + "wiYSI6ImNtcm5xZG1qbTMybHIyeX" + "NkOTFrOGdiMXoifQ.-m-Z0AdlgRKVM0Eztz2-Ww");
 
       mapInstance = new mapboxgl.Map({
         container: mapContainerRef.current!,

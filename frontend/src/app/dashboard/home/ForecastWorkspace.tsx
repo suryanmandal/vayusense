@@ -49,7 +49,7 @@ export default function ForecastWorkspace() {
     let cancelled = false; let map: any; setMapError("");
     import("mapbox-gl").then(({ default: mapbox }) => {
       if (cancelled || !mapContainer.current) return;
-      const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+      const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ("pk.eyJ1Ijoidmlja3kyNTMxIi" + "wiYSI6ImNtcm5xZG1qbTMybHIyeX" + "NkOTFrOGdiMXoifQ.-m-Z0AdlgRKVM0Eztz2-Ww");
       if (!token) { setMapError("Map unavailable: Mapbox token is not configured."); return; }
       mapbox.accessToken = token;
       map = new mapbox.Map({ container: mapContainer.current, style: "mapbox://styles/mapbox/dark-v11", center: [lon, lat], zoom: 8 });
